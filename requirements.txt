@@ -1,0 +1,3 @@
+pip install pypdfocr
+sudo apt-get install tesseract-ocr
+pip install pdfquery
