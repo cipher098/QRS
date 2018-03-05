@@ -1,3 +1,7 @@
 pip install pypdfocr
-sudo apt-get install tesseract-ocr
+pip install pytesseract
 pip install pdfquery
+// install java 8
+// install anaconda
+// pip install ipython
+// pip install tabula-py
