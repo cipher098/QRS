@@ -8,10 +8,11 @@ from StringIO import StringIO
 
 def checkTable(strng):
 	#regular expression
-	strng1 = strng.lower()
-	if('financial' in strng1 and 'result' in strng1 and 'consolidated' not in strng1):
-		return True
-	return false
+	if(type(strng) == str):
+		strng1 = strng.lower()
+		if('financial' in strng1 and 'result' in strng1 and 'consolidated' not in strng1):
+			return True
+	return False
 
 
 def convertBbox(bbox):
@@ -39,13 +40,13 @@ def getMonths():
 	else:
 		datePrev = 30
 
-	cur = calendar.month_name(cur)
-	prev = calendar.month_name(prev)
+	cur = calendar.month_name[cur]
+	prev = calendar.month_name[prev]
 
 	return cur, prev, dateCur, datePrev, year
 
 
-def finfFig(root):
+def findFig(root):
 	#Iterating over pages
 	for page in root:
 		for img in page:
@@ -53,10 +54,12 @@ def finfFig(root):
 				for txtline in fig:
 					for txtbox in txtline:
 						if(checkTable(txtbox.text)):
+							print 'check true'
 							return fig
+	return False
 
 
-def check(value, value1 y0, y1):
+def check(value, value1, y0, y1):
 	if(value >= y0 and value <= y1):
 		return True
 	if(value1 >= y0 and value1 <= y1):
@@ -69,37 +72,55 @@ f = open(fname)
 xml = f.read()
 f.close()
 
-tree = etree.parse(StringIO(xml), remove_blank_text=True)
+tree = etree.parse(StringIO(xml))
 
 #Gets root of document
 root = tree.getroot()
-fig = finfFig(root)
+fig = findFig(root)
 
-cur, year = getDate()
-cur, prev, dateCur, datePrev, year = getMonths(cur, )
+cur, prev, dateCur, datePrev, year = getMonths()
 bboxCur = []
 
 #Getting bbox of required months and basic
+i = 1
 for txtline in fig:
-	for txtbox in txtline:
-		if(cur in txtbox.text and dateCur in txtbox.text):
-			bboxCur.append = convertBbox(txtbox.get('bbox'))
-		elif(prev in txtbox.text and datePrev in txtbox.text):
-			bboxPrev = convertBbox(txtbox.get('bbox'))
-		elif('Basic' in txtbox.text):
-			bboxBasic = convertBbox(txtbox.get('bbox'))
-
-
+	if(txtline is not None):
+		for txtbox in txtline:
+			if(len(txtbox) == 0):
+				if(txtbox is not None):
+					# print txtbox.text
+					if(cur in txtbox.text and str(dateCur) in txtbox.text):
+						bboxCur.append = convertBbox(txtbox.get('bbox'))
+					elif(prev in txtbox.text and str(datePrev) in txtbox.text):
+						bboxPrev = convertBbox(txtbox.get('bbox'))
+					elif('Basic' in txtbox.text):
+						bboxBasic = convertBbox(txtbox.get('bbox'))
+					elif('Revenue' in txtbox.text or 'Income' in txtbox.text and 'operations' in txtbox.text):
+						bboxRevenue = convertBbox(txtbox.get('bbox'))
+print bboxRevenue
 if(bboxCur[0][0] > bboxCur[1][0]):
 	bboxCurc = bboxCur[1]
 	bboxCurl = bboxCur[0]
 
 bboxVal = []
+bboxRevVal = []
 y0 = bboxBasic[1]
 y1 = bboxBasic[3]
+ry0 = bboxRevenue[1]
+ry1 = bboxRevenue[3]
 
 for txtline in fig:
-	for txtbox in txtline:
-		if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
-			bboxVal.append(convertBbox(txtbox.get('bbox')))
+	if (txtline is not None):
+		for txtbox in txtline:
+			if(txtbox is not None):
+				if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
+					pr = []
+					pr.append(convertBbox(txtbox.get('bbox')))
+					pr.append(txtbox.text)
+					bboxVal.append(pr)
+				if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1)):
+					pr = []
+					pr.append(convertBbox(txtbox.get('bbox')))
+					pr.append(txtbox.text)
+					bboxRevVal.append(pr)
 
