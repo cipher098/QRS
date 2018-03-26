@@ -5,7 +5,7 @@ import lxml
 from lxml import etree
 from StringIO import StringIO
 
-
+#Have to update check table to get proper table.
 def checkTable(strng):
 	#regular expression
 	if(type(strng) == str):
@@ -67,7 +67,7 @@ def check(value, value1, y0, y1):
 	return False
 
 
-fname = sys.argv[1]
+# fname = sys.argv[1]
 f = open(fname)
 xml = f.read()
 f.close()
@@ -78,25 +78,40 @@ tree = etree.parse(StringIO(xml))
 root = tree.getroot()
 fig = findFig(root)
 
-cur, prev, dateCur, datePrev, year = getMonths()
+# cur, prev, dateCur, datePrev, year = getMonths()
+#For testing
+cur, prev, dateCur, datePrev, year = calendar.month_name[12], calendar.month_name[9], 31, 30, 2017
 bboxCur = []
 
 #Getting bbox of required months and basic
 i = 1
-for txtline in fig:
-	if(txtline is not None):
-		for txtbox in txtline:
-			if(len(txtbox) == 0):
-				if(txtbox is not None):
-					# print txtbox.text
-					if(cur in txtbox.text and str(dateCur) in txtbox.text):
-						bboxCur.append = convertBbox(txtbox.get('bbox'))
-					elif(prev in txtbox.text and str(datePrev) in txtbox.text):
-						bboxPrev = convertBbox(txtbox.get('bbox'))
-					elif('Basic' in txtbox.text):
-						bboxBasic = convertBbox(txtbox.get('bbox'))
-					elif('Revenue' in txtbox.text or 'Income' in txtbox.text and 'operations' in txtbox.text):
-						bboxRevenue = convertBbox(txtbox.get('bbox'))
+# for txtline in fig:
+# 	if(txtline is not None):
+# 		for txtbox in txtline:
+# 			if(len(txtbox) == 0):
+# 				if(txtbox is not None):
+# 					# print txtbox.text
+# 					if(cur in txtbox.text and str(dateCur) in txtbox.text):
+# 						bboxCur.append = convertBbox(txtbox.get('bbox'))
+# 					elif(prev in txtbox.text and str(datePrev) in txtbox.text):
+# 						bboxPrev = convertBbox(txtbox.get('bbox'))
+# 					elif('Basic' in txtbox.text):
+# 						bboxBasic = convertBbox(txtbox.get('bbox'))
+# 					elif('Revenue' in txtbox.text or 'Income' in txtbox.text and 'operations' in txtbox.text):
+# 						bboxRevenue = convertBbox(txtbox.get('bbox'))
+
+for txtbox in fig.iter():
+	if txtbox.text is not None:
+		if(cur in txtbox.text and str(dateCur) in txtbox.text):
+			bboxCur.append(convertBbox(txtbox.get('bbox')))
+		elif(prev in txtbox.text and str(datePrev) in txtbox.text):
+			bboxPrev = convertBbox(txtbox.get('bbox'))
+		elif('Basic' in txtbox.text):
+			bboxBasic = convertBbox(txtbox.get('bbox'))
+		elif('Revenue' in txtbox.text or 'Income' in txtbox.text and 'operations' in txtbox.text):
+			bboxRevenue = convertBbox(txtbox.get('bbox'))
+
+
 print bboxRevenue
 if(bboxCur[0][0] > bboxCur[1][0]):
 	bboxCurc = bboxCur[1]
@@ -109,18 +124,31 @@ y1 = bboxBasic[3]
 ry0 = bboxRevenue[1]
 ry1 = bboxRevenue[3]
 
-for txtline in fig:
-	if (txtline is not None):
-		for txtbox in txtline:
-			if(txtbox is not None):
-				if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
-					pr = []
-					pr.append(convertBbox(txtbox.get('bbox')))
-					pr.append(txtbox.text)
-					bboxVal.append(pr)
-				if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1)):
-					pr = []
-					pr.append(convertBbox(txtbox.get('bbox')))
-					pr.append(txtbox.text)
-					bboxRevVal.append(pr)
+# for txtline in fig:
+# 	if (txtline is not None):
+# 		for txtbox in txtline:
+# 			if(txtbox is not None):
+# 				if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
+# 					pr = []
+# 					pr.append(convertBbox(txtbox.get('bbox')))
+# 					pr.append(txtbox.text)
+# 					bboxVal.append(pr)
+# 				if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1)):
+# 					pr = []
+# 					pr.append(convertBbox(txtbox.get('bbox')))
+# 					pr.append(txtbox.text)
+# 					bboxRevVal.append(pr)
 
+
+for txtbox in fig.iter():
+	if(txtbox is not None):
+		if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
+			pr = []
+			pr.append(convertBbox(txtbox.get('bbox')))
+			pr.append(txtbox.text)
+			bboxVal.append(pr)
+		if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1)):
+			pr = []
+			pr.append(convertBbox(txtbox.get('bbox')))
+			pr.append(txtbox.text)
+			bboxRevVal.append(pr)	
