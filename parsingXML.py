@@ -1,9 +1,12 @@
+import re
 import sys
 import time
 import calendar
 import lxml
 from lxml import etree
 from StringIO import StringIO
+from operator import itemgetter
+
 
 #Have to update check table to get proper table.
 def checkTable(strng):
@@ -70,29 +73,32 @@ def findFig(root):
 		if type(page) is lxml.etree._Element:
 			st1 = False
 			st2 = False
+			st3 = False
 			for txtbox in page.iter():
 				if(checkTable(txtbox.text)):
+					st3 = True
 					st1 = True
-
+					print 'a'
 				if(checkTable1(txtbox.text)):
 					st2 = True
+					if st3:
+						print '1'
 				if st1 and st2:
 					return page
+				st3 = False
 	return False
 
-def sortRevVal(dix):
+def filterVal(dix):
 	lst = []
-	for key in dix:
-		try:
-			float(key)
-		except:
-			try:
-				import unicodedata
-				unicodedata.numeric(key)
-			except:
-				lst.append(key)
+	pattern1 = re.compile(r"^[a-z]+")
+	pattern2 = re.compile(r"\W+")
+	for key, val in dix.iteritems():
+		if pattern1.search(key.lower()):
+			lst.append(key)
+
 	for key in lst:
 		del dix[key]
+
 	return dix
 
 def check(value, value1, y0, y1):
@@ -178,14 +184,35 @@ if type(fig) is lxml.etree._Element:
 
 	for txtbox in fig.iter():
 		if(txtbox is not None):
-			if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
+			if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1) and txtbox.text is not None):
 				bboxVal[txtbox.text] = convertBbox(txtbox.get('bbox'))
-			if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1)):
+			if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1) and txtbox.text is not None):
 				bboxRevVal[txtbox.text] = convertBbox(txtbox.get('bbox'))
-
-	bboxRevVal = sortRevVal(bboxRevVal)
-
+	print('bboxVal-------------------')
+	for ele, val in bboxVal.iteritems():
+		print(ele, val)
+	print('bboxrevVal----------------')
 	for ele, val in bboxRevVal.iteritems():
 		print(ele, val)
+	bboxRevVal = filterVal(bboxRevVal)
+	pattern2 = re.compile(r"\W+")
+	for key in bboxRevVal:
+		key = pattern2.sub('', key)
+	bboxVal = filterVal(bboxVal)
+	bboxRevVal = sorted(bboxRevVal.items(), key=itemgetter(1))
+	bboxVal = sorted(bboxVal.items(), key=itemgetter(1))
+	print('bboxVal-------------------')
+	for ele, val in bboxVal:
+		print(ele, val)
+	print('bboxrevVal----------------')
+	# for i in range(len(bboxRevVal)):
+	# 	bboxRevVal[i][0] = pattern2.sub('', bboxRevVal[i][0])
+	for ele, val in bboxRevVal:
+		print(ele, val)
+	print '------------------------'
+	# print bboxVal
+
+
+
 else:
 	print("Table not found")
