@@ -80,6 +80,20 @@ def findFig(root):
 					return page
 	return False
 
+def sortRevVal(dix):
+	lst = []
+	for key in dix:
+		try:
+			float(key)
+		except:
+			try:
+				import unicodedata
+				unicodedata.numeric(key)
+			except:
+				lst.append(key)
+	for key in lst:
+		del dix[key]
+	return dix
 
 def check(value, value1, y0, y1):
 	if(value >= y0 and value <= y1):
@@ -139,8 +153,8 @@ if type(fig) is lxml.etree._Element:
 		bboxCurc = bboxCur[1]
 		bboxCurl = bboxCur[0]
 
-	bboxVal = []
-	bboxRevVal = []
+	bboxVal = {}
+	bboxRevVal = {}
 	y0 = bboxBasic[1]
 	y1 = bboxBasic[3]
 	ry0 = bboxRevenue[1]
@@ -165,17 +179,13 @@ if type(fig) is lxml.etree._Element:
 	for txtbox in fig.iter():
 		if(txtbox is not None):
 			if(check(txtbox.get('y0'), txtbox.get('y1'), y0, y1)):
-				pr = []
-				pr.append(convertBbox(txtbox.get('bbox')))
-				pr.append(txtbox.text)
-				bboxVal.append(pr)
+				bboxVal[txtbox.text] = convertBbox(txtbox.get('bbox'))
 			if(check(txtbox.get('y0'), txtbox.get('y1'), ry0, ry1)):
-				pr = []
-				pr.append(convertBbox(txtbox.get('bbox')))
-				pr.append(txtbox.text)
-				bboxRevVal.append(pr)
+				bboxRevVal[txtbox.text] = convertBbox(txtbox.get('bbox'))
 
-	for elem in bboxRevVal:
-		print(elem)
+	bboxRevVal = sortRevVal(bboxRevVal)
+
+	for ele, val in bboxRevVal.iteritems():
+		print(ele, val)
 else:
 	print("Table not found")
