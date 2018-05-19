@@ -119,7 +119,7 @@ tree = etree.parse(StringIO(xml))
 #Gets root of document
 root = tree.getroot()
 fig = findFig(root)
-
+# fig = root[1]
 # cur, prev, dateCur, datePrev, year = getMonths()
 #For testing
 cur, prev, dateCur, datePrev, year = monthName[12], monthName[9], 31, 30, 2017
