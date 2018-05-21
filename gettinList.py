@@ -15,15 +15,13 @@ ctx.verify_mode = ssl.CERT_NONE
 cdate = date.today()
 day = str(cdate.day) + '-' + (calendar.month_name[cdate.month])[:3] + '-' + str(cdate.year)
 # day = '21-May-2018'
-internetTime = 0.0
-fCount = 0
 
 def scripList():
     url = 'http://www.moneycontrol.com/stocks/marketinfo/meetings.php?opttopic=brdmeeting'
     tstart = datetime.datetime.now().timestamp()
     html = urlopen(url, context=ctx).read()
     tend = datetime.datetime.now().timestamp()
-    internetTime = tend - tstart
+    # internetTime = internetTime + (tend - - tstart)
     soup = BeautifulSoup(html, 'html.parser')
     tags = soup('tr')
     scrip = []
@@ -87,13 +85,15 @@ def findMonth():
         month = (calendar.month_name[9])[:3] + ' \'' + str(cdate.year - 2000)
     return month
 
-def findingResult(scrip):
+def findingResult(scrip, fCount, internetTime):
     fix_url_start = 'http://www.moneycontrol.com/financials/'
     fix_url_end = '/results/quarterly-results/'
+    ind = 0
     for val in scrip:
+        ind = ind + 1
         # small_name = 'sagarsoft'
         # code = 'S24'
-        print('Finding result for : ', val[0])
+        print(str(ind) + '. Finding result for : ', val[0])
         month = findMonth()
         # month = 'May \'18'
         small_name = getNameInSmall(val[0])
@@ -102,9 +102,10 @@ def findingResult(scrip):
         tstart = datetime.datetime.now().timestamp()
         html = urlopen(url, context=ctx).read()
         tend = datetime.datetime.now().timestamp()
-        internetTime = tend - tstart
+        internetTime = internetTime + (tend - tstart)
         soup = BeautifulSoup(html, 'html.parser')
         tags = soup('tr')
+        # print(len(tags))
         netSales = []
         st1 = False
         st2 = False
@@ -127,7 +128,7 @@ def findingResult(scrip):
                                     i = i+1
                                     if(i == 3):
                                         st1 = False
-                                if(each.contents[0] == 'EPS After Extra Ordinary'):
+                                elif(each.contents[0] == 'EPS After Extra Ordinary'):
                                     st2 = True
 
                                 elif(st2 and each.contents[0] == 'Basic EPS'):
@@ -150,9 +151,13 @@ def findingResult(scrip):
                 fCount = fCount + 1
                 # print (result)
                 break
+    return scrip, fCount, internetTime
 
 
 def main():
+    # global internetTime
+    internetTime = 0.0
+    fCount = 0
     startTime = datetime.datetime.now().timestamp()
     print('Hey!')
     print('Finding list of scrips announced today.')
@@ -161,7 +166,7 @@ def main():
     if(length > 0):
         print('Total ', length, ' companies announced results today.')
         print('Finding Results')
-        result = findingResult(scrip)
+        result, fCount, internetTime = findingResult(scrip, fCount, internetTime)
         print('Results found.')
         print('Exporting results to excel fiile.....')
         wb = openpyxl.Workbook()
@@ -182,7 +187,7 @@ def main():
         totalTime = ((endTime - startTime)/60)
         internetTime = internetTime / 60
         print('Total time taken by program to find result of ', fCount, 'is : ', totalTime, ' minutes.')
-        print('Total time taken for getting data from interent : ', internetTime, ' minutes.')
+        print('Total time taken for getting data from internet : ', internetTime, ' minutes.')
         print('Shutting Down.....!!')
 
 
