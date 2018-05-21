@@ -1,10 +1,12 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import bs4
+import datetime
 from datetime import date
 import calendar
 import ssl
 import re
+import openpyxl
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -13,13 +15,17 @@ ctx.verify_mode = ssl.CERT_NONE
 cdate = date.today()
 day = str(cdate.day) + '-' + (calendar.month_name[cdate.month])[:3] + '-' + str(cdate.year)
 # day = '21-May-2018'
+internetTime = 0.0
+fCount = 0
 
 def scripList():
     url = 'http://www.moneycontrol.com/stocks/marketinfo/meetings.php?opttopic=brdmeeting'
+    tstart = datetime.datetime.now().timestamp()
     html = urlopen(url, context=ctx).read()
+    tend = datetime.datetime.now().timestamp()
+    internetTime = tend - tstart
     soup = BeautifulSoup(html, 'html.parser')
     tags = soup('tr')
-
     scrip = []
     pattern = '/stockpricequote/'
 
@@ -93,7 +99,10 @@ def findingResult(scrip):
         small_name = getNameInSmall(val[0])
         code = val[1]
         url = fix_url_start + small_name + fix_url_end + code + '#' + code
+        tstart = datetime.datetime.now().timestamp()
         html = urlopen(url, context=ctx).read()
+        tend = datetime.datetime.now().timestamp()
+        internetTime = tend - tstart
         soup = BeautifulSoup(html, 'html.parser')
         tags = soup('tr')
         netSales = []
@@ -134,21 +143,47 @@ def findingResult(scrip):
                     except:
                         pass
             if(st3):
-                print(netSales)
-                print(eps)
+                # print(netSales)
+                # print(eps)
                 result = checkResult(netSales, eps)
                 val.append(result)
-                print (result)
+                fCount = fCount + 1
+                # print (result)
                 break
 
 
 def main():
+    startTime = datetime.datetime.now().timestamp()
+    print('Hey!')
+    print('Finding list of scrips announced today.')
     scrip = scripList()
     length = len(scrip)
     if(length > 0):
-        print('Total ' , length, ' scrips found.')
+        print('Total ', length, ' companies announced results today.')
         print('Finding Results')
         result = findingResult(scrip)
+        print('Results found.')
+        print('Exporting results to excel fiile.....')
+        wb = openpyxl.Workbook()
+        sheet = wb.active
+        sheet.title = 'Result ' + day
+        i = 1
+        for val in result:
+            sheet['A' + str(i)] = val[0]
+            if(len(val) > 2):
+                if(val[2]):
+                    sheet['B' + str(i)] = 'Yes'
+                else:
+                    sheet['B' + str(i)] = 'No'
+            i = i + 1
+        wb.save('Result ' + day + '.xlsx')
+        print('Result exported. File saved as Result ' + day + '.xlsx .')
+        endTime = datetime.datetime.now().timestamp()
+        totalTime = ((endTime - startTime)/60)
+        internetTime = internetTime / 60
+        print('Total time taken by program to find result of ', fCount, 'is : ', totalTime, ' minutes.')
+        print('Total time taken for getting data from interent : ', internetTime, ' minutes.')
+        print('Shutting Down.....!!')
 
 
 if __name__ == "__main__":
