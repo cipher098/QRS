@@ -1,6 +1,0 @@
-First make it OCR
-	pypdfocr filename.pdf
-
-Convert it to xml
-
-Parse XML

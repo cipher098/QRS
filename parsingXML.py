@@ -9,6 +9,14 @@ from operator import itemgetter
 
 
 #Have to update check table to get proper table.
+#Steps
+# First make it OCR
+# 	pypdfocr filename.pdf
+#
+# Convert it to xml
+#
+# Parse XML
+
 def checkTable(strng):
 	#regular expression
 	if(type(strng) == str):
