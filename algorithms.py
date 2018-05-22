@@ -1,10 +1,28 @@
 def checkResult(netSales, eps):
-    crfo = float(netSales[0])
-    prfo = float(netSales[1])
-    lrfo = float(netSales[2])
-    cqe = float(eps[0])
-    pqe = float(eps[1])
-    lqe = float(eps[2])
+    try:
+        crfo = float(netSales[0])
+    except:
+        crfo = 0.0
+    try:
+        prfo = float(netSales[1])
+    except:
+        prfo = 0.0
+    try:
+        lrfo = float(netSales[2])
+    except:
+        lrfo = 0.0
+    try:
+        cqe = float(eps[0])
+    except:
+        cqe = 0.0
+    try:
+        pqe = float(eps[1])
+    except:
+        pqe = 0.0
+    try:
+        lqe = float(eps[2])
+    except:
+        lqe = 0.0
     if(cqe > lqe and crfo > prfo):
         if(cqe <= 1 and (cqe >= pqe + 0.25)):
             return True
