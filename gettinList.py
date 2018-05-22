@@ -7,6 +7,8 @@ import calendar
 import ssl
 import re
 import openpyxl
+from algorithms import checkResult
+import getpass
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
@@ -14,14 +16,13 @@ ctx.verify_mode = ssl.CERT_NONE
 
 cdate = date.today()
 day = str(cdate.day) + '-' + (calendar.month_name[cdate.month])[:3] + '-' + str(cdate.year)
-# day = '21-May-2018'
 
-def scripList():
+def scripList(internetTime):
     url = 'http://www.moneycontrol.com/stocks/marketinfo/meetings.php?opttopic=brdmeeting'
     tstart = datetime.datetime.now().timestamp()
     html = urlopen(url, context=ctx).read()
     tend = datetime.datetime.now().timestamp()
-    # internetTime = internetTime + (tend - - tstart)
+    internetTime = internetTime + (tend - tstart)
     soup = BeautifulSoup(html, 'html.parser')
     tags = soup('tr')
     scrip = []
@@ -49,30 +50,12 @@ def scripList():
                 if(type(each.contents[0] == bs4.element.NavigableString)):
                     if (each.contents[0] == day):
                         scrip.append(temp_scrip)
-    return scrip
+    return scrip, internetTime
 
 def getNameInSmall(name):
     f_name = name.lower()
     f_name = f_name.replace(' ', '')
     return f_name
-
-def checkResult(netSales, eps):
-    crfo = float(netSales[0])
-    prfo = float(netSales[1])
-    lrfo = float(netSales[2])
-    cqe = float(eps[0])
-    pqe = float(eps[1])
-    lqe = float(eps[2])
-    if(cqe > lqe and crfo > prfo):
-        if(cqe <= 1 and (cqe >= pqe + 0.25)):
-            return True
-        elif(cqe <= 2 and (cqe >= pqe+0.5)):
-            return True
-        elif(cqe <= 10 and cqe > 2 and (cqe >= pqe+1)):
-            return True
-        elif(cqe > 10 and (cqe >= pqe + 1.5)):
-            return True
-    return False
 
 def findMonth():
     if(cdate.month >= 1 and cdate.month <= 3):
@@ -91,11 +74,8 @@ def findingResult(scrip, fCount, internetTime):
     ind = 0
     for val in scrip:
         ind = ind + 1
-        # small_name = 'sagarsoft'
-        # code = 'S24'
         print(str(ind) + '. Finding result for : ', val[0])
         month = findMonth()
-        # month = 'May \'18'
         small_name = getNameInSmall(val[0])
         code = val[1]
         url = fix_url_start + small_name + fix_url_end + code + '#' + code
@@ -105,7 +85,6 @@ def findingResult(scrip, fCount, internetTime):
         internetTime = internetTime + (tend - tstart)
         soup = BeautifulSoup(html, 'html.parser')
         tags = soup('tr')
-        # print(len(tags))
         netSales = []
         st1 = False
         st2 = False
@@ -144,24 +123,20 @@ def findingResult(scrip, fCount, internetTime):
                     except:
                         pass
             if(st3):
-                # print(netSales)
-                # print(eps)
                 result = checkResult(netSales, eps)
                 val.append(result)
                 fCount = fCount + 1
-                # print (result)
                 break
     return scrip, fCount, internetTime
 
 
 def main():
-    # global internetTime
     internetTime = 0.0
     fCount = 0
     startTime = datetime.datetime.now().timestamp()
     print('Hey!')
     print('Finding list of scrips announced today.')
-    scrip = scripList()
+    scrip, internetTime = scripList(internetTime)
     length = len(scrip)
     if(length > 0):
         print('Total ', length, ' companies announced results today.')
@@ -181,8 +156,8 @@ def main():
                 else:
                     sheet['B' + str(i)] = 'No'
             i = i + 1
-        wb.save('Result ' + day + '.xlsx')
-        print('Result exported. File saved as Result ' + day + '.xlsx .')
+        wb.save('/home/'+getpass.getuser()+'/Desktop/Result ' + day + '.xlsx')
+        print('Result exported. File saved as Result ' + day + '.xlsx at desktop.')
         endTime = datetime.datetime.now().timestamp()
         totalTime = ((endTime - startTime)/60)
         internetTime = internetTime / 60
