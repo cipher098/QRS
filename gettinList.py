@@ -72,15 +72,18 @@ def findingResult(scrip, fCount, internetTime):
     fix_url_start = 'http://www.moneycontrol.com/financials/'
     fix_url_end = '/results/quarterly-results/'
     ind = 0
+    month = findMonth()
     for val in scrip:
         ind = ind + 1
         print(str(ind) + '. Finding result for : ', val[0])
-        month = findMonth()
         small_name = getNameInSmall(val[0])
         code = val[1]
         url = fix_url_start + small_name + fix_url_end + code + '#' + code
         tstart = datetime.datetime.now().timestamp()
-        html = urlopen(url, context=ctx).read()
+        try:
+        	html = urlopen(url, context=ctx).read()
+        except:
+        	continue
         tend = datetime.datetime.now().timestamp()
         internetTime = internetTime + (tend - tstart)
         soup = BeautifulSoup(html, 'html.parser')
